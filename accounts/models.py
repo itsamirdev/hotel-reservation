@@ -32,24 +32,17 @@ class CustomUserManager(UserManager):
 
         return self._create_user(phone, email, password, **extra_fields)
 
-    def validation_address_phone(value):
-        if value:
-            if not User.objects.filter(phone=value).exists():
-                raise ValidationError(
-                    'User with %(value)s not exist',
-                    params={'value', value},
-                )
-
 
 class User(AbstractUser):
     class Gender(models.TextChoices):
+        NONE = "NONE"
         MALE = "MALE"
         FEMALE = "FEMALE"
 
     username = None
     email = models.EmailField(blank=True, unique=True)
     phone = models.CharField(max_length=16, unique=True)
-    gender = models.CharField(max_length=6, choices=Gender.choices, default=None)
+    gender = models.CharField(max_length=6, choices=Gender.choices, default=Gender.NONE)
     date_of_birth = models.DateField(blank=True, null=True)
     nationality = models.CharField(max_length=50, blank=True)
     national_id = models.CharField(max_length=10, unique=True, blank=True)
@@ -58,8 +51,10 @@ class User(AbstractUser):
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 
-    USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []
+    objects = CustomUserManager()
+
+    USERNAME_FIELD = "phone"
+    REQUIRED_FIELDS = ["email"]
 
     def __str__(self):
         return self.phone
